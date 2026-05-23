@@ -225,9 +225,9 @@ const fcvc=async(bx)=>{ //s3
 
     try {
       const tshirtCount = JSON.stringify(od.od || {}).match(/:\s*(\d+)/g)?.reduce((p, a) => p + Number(a.slice(1)), 0) || 0;
-      notifyReflink({
+      await notifyReflink({
         order_id: od.odid,
-        email: od.mail || null,
+        email: od.id || od.mail || null,
         phone: od.mn1 || null,
         tshirt_count: tshirtCount,
         order_amount: od.ttpc || null,
