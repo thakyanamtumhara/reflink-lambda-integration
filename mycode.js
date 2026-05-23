@@ -52,6 +52,24 @@ const modfetch = (url, method = "GET", body = null,h={}) => {
 
 exports.modfetch = modfetch;
 
+// ─── Referral system hook ───────────────────────────────────────────────────
+// Fire-and-forget POST to our Cloudflare worker so it can attribute the order
+// to the right YouTuber (if any), check new-vs-returning, and credit ₹1/tshirt.
+// Never throws — order completion must not depend on this. Secret comes from
+// Lambda env var REFLINK_SECRET.
+exports.notifyReflink = async (payload) => {
+  try {
+    await modfetch(
+      'https://referral.bulkplaintshirt.com/api/order-placed',
+      'POST',
+      payload,
+      { 'X-Order-Secret': process.env.REFLINK_SECRET || '' }
+    );
+  } catch (err) {
+    console.log('[reflink] notify failed (non-blocking):', err && err.message);
+  }
+};
+
 // ─── HMAC token verifier for custom-courier rates (cstcr flow) ──────────────
 // Mirrors getpc/cstcr_token.js. Token format:
 //   <base64url(payload_json)>.<base64url(hmac_sha256)>

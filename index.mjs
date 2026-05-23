@@ -1,5 +1,5 @@
 import { initorderid, statusid, vdn, mde, m } from './hdfc.js'
-import { orderid,vfypc,tfetch,modfetch,xschedule } from './mycode.js'
+import { orderid,vfypc,tfetch,modfetch,xschedule,notifyReflink } from './mycode.js'
 import {razorverify} from './rzr.js'
 import { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand, DeleteItemCommand,QueryCommand  } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';//marshall {k:{S:"mj"}}
@@ -222,6 +222,18 @@ const fcvc=async(bx)=>{ //s3
       console.log('Error in fetch:', e?.message,e?.stack,e, od);
     }
     console.log('bnfetch:', bn,od);
+
+    try {
+      const tshirtCount = JSON.stringify(od.od || {}).match(/:\s*(\d+)/g)?.reduce((p, a) => p + Number(a.slice(1)), 0) || 0;
+      notifyReflink({
+        order_id: od.odid,
+        email: od.mail || null,
+        phone: od.mn1 || null,
+        tshirt_count: tshirtCount,
+        order_amount: od.ttpc || null,
+        visitor_uid: od.vuid || od.visitor_uid || null
+      });
+    } catch (rfErr) { console.log('[reflink] call failed:', rfErr?.message); }
 
     return {"m":od.odid,"dt":od.dt}
   }
